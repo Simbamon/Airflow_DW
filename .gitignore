@@ -1,3 +1,4 @@
 logs
 py_env
 __pycache__
+mysql_to_bigquery.py
