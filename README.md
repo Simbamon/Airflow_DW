@@ -8,7 +8,8 @@ Making Service Account on Google Cloud Platform:
   4. Fill out the information
       - Service account name: Name of the service account
       - Service account ID: Automatically generated after you create the name
-      - Service account description: Description of the service account
+      - Service account description: Description of the service account  
+     
      Then click `CREATE AND CONTINUE`
   5. Grant the access to project on the Service Account you just created
       These access are based on the BigQuery ETL project
@@ -23,7 +24,8 @@ Creating new Key for Service Account
   3. In the Keys page, click `ADD KEY` then click `Create new key`
   4. There are two options:
       - JSON (Recommended)
-      - P12 (For backward compatibility with code using the P12 format)
+      - P12 (For backward compatibility with code using the P12 format)  
+    
      Click `JSON`
   5. After the creation, the json key will automatically start downloading to your machine
 
