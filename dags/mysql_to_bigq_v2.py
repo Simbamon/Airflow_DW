@@ -13,11 +13,11 @@ default_args = {
 
 @dag(
     default_args=default_args,
-    dag_id='etl_mssql_bigquery_dr',
+    dag_id='etl_mssql_bigquery_dag_dst',
     start_date=datetime(2023, 3, 22),
     schedule_interval='0 10 * * *',
     catchup=False,
-    tags=["mssql_to_googlebigq"]
+    tags=["mssql_to_googlebigq_DST"]
 )
 
 # Define Dag Function
@@ -27,7 +27,7 @@ def extract_and_load():
         try:
             hook = MsSqlHook(mssql_conn_id="ms_sql_server")
             sql = """ select t.name as table_name  
-            from sys.tables t where t.name in ('DimReseller') """
+            from sys.tables t where t.name in ('DimSalesTerritory') """
             df = hook.get_pandas_df(sql)
             print(df)
             tbl_dict = df.to_dict('dict')
@@ -48,6 +48,7 @@ def extract_and_load():
                     sql = f'select * FROM {v}'
                     hook = MsSqlHook(mssql_conn_id="ms_sql_server")
                     df = hook.get_pandas_df(sql)
+                    df['SalesTerritoryImage'] = df['SalesTerritoryImage'].astype('str') 
                     print(f'importing rows {rows_imported} to {rows_imported + len(df)}... for table {v} ')
                     df.to_gbq(destination_table=f'{dataset_ref}.src_{v}', project_id=project_id, credentials=credentials, if_exists="replace")
                     rows_imported += len(df)
