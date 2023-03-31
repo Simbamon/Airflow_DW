@@ -29,3 +29,12 @@ Creating new Key for Service Account
      Click `JSON`
   5. After the creation, the json key will automatically start downloading to your machine
 
+## FIXES
+1.  Unable to convert dataframe to parquet error in BigQuery
+    Some of the columns in MS AdventureWorkDW2019 were different data type than usual
+    For instance, SalesTerritoryImage data type is varbinary and looks like it is causing an error
+    To fix this, reference this [stackoverflow case](https://stackoverflow.com/questions/64364129/unable-to-convert-dataframe-to-parquet-typeerror)
+    Example:
+    ```
+    df['SalesTerritoryImage'] = df['SalesTerritoryImage'].astype('str') 
+    ```
