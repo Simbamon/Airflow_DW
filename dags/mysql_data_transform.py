@@ -45,6 +45,17 @@ def load_src_data(tbl_dict: dict):
     except Exception as e:
         print("Data load error: " + str(e))
 
+# Transformation tasks
+# Will update more later
+@task()
+def transform_srcProduct():
+    try:
+        credentials = service_account.Credentials.from_service_account_file('<YOUR_GCP_SA_CREDENTIAL>')
+        project_id = "<YOUR_BIGQUERY_PROJECT_NAME>"
+        dataset_ref = "<YOUR_BIGQUERY_DATASET_NAME>"    
+    except Exception as e:
+        print("Data load error: " + str(e))
+
 with DAG(
     default_args=default_args,
     dag_id='etl_mssql_bigquery_dag_v2',
