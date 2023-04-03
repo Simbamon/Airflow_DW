@@ -29,6 +29,14 @@ Creating new Key for Service Account
      Click `JSON`
   5. After the creation, the json key will automatically start downloading to your machine
 
+## Notes
+How to access Airflow CLI through docker
+  1. grab the CONTAINER ID through `docker ps`
+  2. run this command
+     ```
+     docker exec -it {AIRFLOW_CONTAINER_ID} bash
+     ```
+
 ## FIXES
 1.  Unable to convert dataframe to parquet error in BigQuery
     Some of the columns in MS AdventureWorkDW2019 were different data type than usual
