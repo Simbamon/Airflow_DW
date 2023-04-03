@@ -31,17 +31,21 @@ def load_src_data(tbl_dict: dict):
         project_id = "<YOUR_BIGQUERY_PROJECT_NAME>"
         dataset_ref = "<YOUR_BIGQUERY_DATASET_NAME>"
         all_tbl_name = []
+        start_time = time.time()
 
         for k, v in tbl_dict['table_name'].items():
             all_tbl_name.append(v)
+            print(all_tbl_name)
             rows_imported = 0   
             sql = f'select * FROM {v}'
             hook = MsSqlHook(mssql_conn_id="ms_sql_server")
             df = hook.get_pandas_df(sql)
-            df['LargePhoto'] = df['LargePhoto'].astype('str') 
+            if (all_tbl_name == ['DimProduct']):
+                df['LargePhoto'] = df['LargePhoto'].astype('str') 
             print(f'importing rows {rows_imported} to {rows_imported + len(df)}... for table {v} ')
             df.to_gbq(destination_table=f'{dataset_ref}.src_{v}', project_id=project_id, credentials=credentials, if_exists="replace")
             rows_imported += len(df)
+            print(f'Done. {str(round(time.time() - start_time, 2))} total seconds elapsed')
     except Exception as e:
         print("Data load error: " + str(e))
 
