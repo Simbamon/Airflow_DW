@@ -1,5 +1,6 @@
 logs
 py_env
 __pycache__
+gcp_variables.json
 mysql_to_bigquery.py
 mysql_data_transform_real.py

@@ -1,0 +1,7 @@
+{
+    "gcp_variables_config": {
+        "service_account_credential":"{YOUR_SERVICE_ACCOUNT_CREDENTIAL}",
+        "project_id":"YOUR_PROJECT_ID",
+        "dataset_ref":"YOUR_DATASET_REF"
+    }
+}
