@@ -1,6 +1,7 @@
 import time
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
+from airflow.models import Variable
 from airflow.providers.microsoft.mssql.hooks.mssql import MsSqlHook
 import pandas as pd
 from google.oauth2 import service_account
@@ -10,6 +11,11 @@ default_args = {
     'retries': 5,
     'retry_delay': timedelta(minutes=5)
 }
+
+dag_variable_config = Variable.get("gcp_variables_config", deserialize_json=True)
+credentials_config = dag_variable_config["service_account_credential"]
+project_config = dag_variable_config["project_id"]
+dataset_config = Variable.get("MS_AdventureWorks")
 
 @dag(
     default_args=default_args,
@@ -37,9 +43,9 @@ def extract_and_load():
     @task()
     def gcp_load(tbl_dict: dict):
         try:
-            credentials = service_account.Credentials.from_service_account_file('<YOUR_GCP_SA_CREDENTIAL>')
-            project_id = "<YOUR_BIGQUERY_PROJECT_NAME>"
-            dataset_ref = "<YOUR_BIGQUERY_DATASET_NAME>"
+            credentials = service_account.Credentials.from_service_account_file(credentials_config)
+            project_id = project_config
+            dataset_ref = dataset_config
 
             for value in tbl_dict.values():
                 val = value.values()
