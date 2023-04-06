@@ -17,7 +17,9 @@ default_args = {
 dag_variable_config = Variable.get("gcp_variables_config", deserialize_json=True)
 credentials_config = dag_variable_config["service_account_credential"]
 project_config = dag_variable_config["project_id"]
-dataset_config = dag_variable_config["dataset_ref"]
+gcp_source_config = dag_variable_config["gcp_source"]
+gcp_staging_config = dag_variable_config["gcp_staging"]
+gcp_production_config = dag_variable_config["gcp_production"]
 
 @task()
 def get_src_tables():
@@ -34,7 +36,7 @@ def load_src_data(tbl_dict: dict):
     try:
         credentials = service_account.Credentials.from_service_account_file(credentials_config)
         project_id = project_config
-        dataset_ref = dataset_config
+        source_ref = gcp_source_config
         all_tbl_name = []
         start_time = time.time()
 
@@ -48,7 +50,7 @@ def load_src_data(tbl_dict: dict):
             if (all_tbl_name == ['DimProduct']):
                 df['LargePhoto'] = df['LargePhoto'].astype('str') 
             print(f'importing rows {rows_imported} to {rows_imported + len(df)}... for table {v} ')
-            df.to_gbq(destination_table=f'{dataset_ref}.src_{v}', project_id=project_id, credentials=credentials, if_exists="replace")
+            df.to_gbq(destination_table=f'{source_ref}.src_{v}', project_id=project_id, credentials=credentials, if_exists="replace")
             rows_imported += len(df)
             print(f'Done. {str(round(time.time() - start_time, 2))} total seconds elapsed')
     except Exception as e:
@@ -61,9 +63,10 @@ def transform_srcProduct():
     try:
         credentials = service_account.Credentials.from_service_account_file(credentials_config)
         project_id = project_config
-        dataset_ref = dataset_config
+        source_ref = gcp_source_config
+        staging_ref = gcp_staging_config
         src_dimprod = f"""
-        SELECT * FROM `{project_config}.{dataset_config}.src_DimProduct` LIMIT 1000
+        SELECT * FROM `{project_config}.{source_ref}.src_DimProduct` LIMIT 1000
         """
         pdf = pd.read_gbq(src_dimprod, project_id=project_id, credentials=credentials)
         print(pdf)
@@ -87,7 +90,7 @@ def transform_srcProduct():
         revised = revised.rename(columns={"EnglishDescription": "Description", "EnglishProductName":"ProductName"})
         revised = revised.astype(str)
         # revised.to_sql(f'stg_DimProduct', engine, if_exists='replace', index=False)
-        revised.to_gbq(destination_table=f'{dataset_ref}.stg_DimProdut',project_id=project_id, credentials=credentials, if_exists="replace")
+        revised.to_gbq(destination_table=f'{staging_ref}.stg_DimProdut',project_id=project_id, credentials=credentials, if_exists="replace")
         return {"table(s) processed ": "Data imported successful"}
 
     except Exception as e:
@@ -98,14 +101,15 @@ def transform_srcProductSubcategory():
     try:
         credentials = service_account.Credentials.from_service_account_file(credentials_config)
         project_id = project_config
-        dataset_ref = dataset_config
+        source_ref = gcp_source_config
+        staging_ref = gcp_staging_config
         src_prodsubcat = f"""
-        SELECT * FROM `{project_config}.{dataset_config}.src_DimProductSubcategory` LIMIT 1000
+        SELECT * FROM `{project_config}.{source_ref}.src_DimProductSubcategory` LIMIT 1000
         """
         pdf = pd.read_gbq(src_prodsubcat, project_id=project_id, credentials=credentials)
         revised = pdf[['ProductSubcategoryKey','EnglishProductSubcategoryName', 'ProductSubcategoryAlternateKey', 'ProductCategoryKey']]
         revised = revised.rename(columns={"EnglishProductSubcategoryName": "ProductSubcategoryName"})
-        revised.to_gbq(destination_table=f'{dataset_ref}.stg_DimProductSubcategory',project_id=project_id, credentials=credentials, if_exists="replace")
+        revised.to_gbq(destination_table=f'{staging_ref}.stg_DimProductSubcategory',project_id=project_id, credentials=credentials, if_exists="replace")
         return {"table(s) processed ": "Data imported successful"}
     except Exception as e:
         print("Data load error: " + str(e))
@@ -115,15 +119,16 @@ def transform_srcProductCategory():
     try:
         credentials = service_account.Credentials.from_service_account_file(credentials_config)
         project_id = project_config
-        dataset_ref = dataset_config
+        source_ref = gcp_source_config
+        staging_ref = gcp_staging_config
         src_dimprodcat = f"""
-        SELECT * FROM `{project_config}.{dataset_config}.src_DimProductCategory` LIMIT 1000
+        SELECT * FROM `{project_config}.{source_ref}.src_DimProductCategory` LIMIT 1000
         """
         pdf = pd.read_gbq(src_dimprodcat, project_id=project_id, credentials=credentials)
         print(pdf)
         revised = pdf[['ProductCategoryKey', 'ProductCategoryAlternateKey','EnglishProductCategoryName']]
         revised = revised.rename(columns={"EnglishProductCategoryName": "ProductCategoryName"})
-        revised.to_gbq(destination_table=f'{dataset_ref}.stg_DimProductCategory',project_id=project_id, credentials=credentials, if_exists="replace")
+        revised.to_gbq(destination_table=f'{staging_ref}.stg_DimProductCategory',project_id=project_id, credentials=credentials, if_exists="replace")
         return {"table(s) processed ": "Data imported successful"}
     except Exception as e:
         print("Data load error: " + str(e))
@@ -133,15 +138,16 @@ def prdProduct_model():
     try:
         credentials = service_account.Credentials.from_service_account_file(credentials_config)
         project_id = project_config
-        dataset_ref = dataset_config
+        staging_ref = gcp_staging_config
+        production_ref = gcp_production_config
         stg_dimprodcat = f"""
-        SELECT * FROM `{project_config}.{dataset_config}.stg_DimProductCategory` LIMIT 1000
+        SELECT * FROM `{project_config}.{staging_ref}.stg_DimProductCategory` LIMIT 1000
         """
         stg_dimprod = f"""
-        SELECT * FROM `{project_config}.{dataset_config}.stg_DimProdut` LIMIT 1000
+        SELECT * FROM `{project_config}.{staging_ref}.stg_DimProdut` LIMIT 1000
         """
         stg_dimprodsubcat = f"""
-        SELECT * FROM `{project_config}.{dataset_config}.stg_DimProductSubcategory` LIMIT 1000
+        SELECT * FROM `{project_config}.{staging_ref}.stg_DimProductSubcategory` LIMIT 1000
         """
         pc = pd.read_gbq(stg_dimprodcat, project_id=project_id, credentials=credentials)
         p = pd.read_gbq(stg_dimprod, project_id=project_id, credentials=credentials)
@@ -149,7 +155,7 @@ def prdProduct_model():
         p['ProductSubcategoryKey'] = p.ProductSubcategoryKey.astype(int)
         ps = pd.read_gbq(stg_dimprodsubcat, project_id=project_id, credentials=credentials)
         merged = p.merge(ps, on='ProductSubcategoryKey').merge(pc, on='ProductCategoryKey')
-        merged.to_gbq(destination_table=f'{dataset_ref}.prd_DimProductCategory',project_id=project_id, credentials=credentials, if_exists="replace")
+        merged.to_gbq(destination_table=f'{production_ref}.prd_DimProductCategory',project_id=project_id, credentials=credentials, if_exists="replace")
         return {"table(s) processed ": "Data imported successful"}
     except Exception as e:
         print("Data load error: " + str(e))
@@ -180,4 +186,4 @@ with DAG(
         prd_Product_model
 
     # extract_load_src_bigq >> transform_src_product_bigq >> load_product_model_bigq
-    extract_load_src_bigq >> transform_src_product_bigq
+    extract_load_src_bigq >> transform_src_product_bigq >> load_product_model_bigq

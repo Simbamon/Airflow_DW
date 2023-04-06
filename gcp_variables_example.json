@@ -1,7 +1,9 @@
 {
     "gcp_variables_config": {
-        "service_account_credential":"{YOUR_SERVICE_ACCOUNT_CREDENTIAL}",
+        "service_account_credential":"YOUR_SERVICE_ACCOUNT_CREDENTIAL",
         "project_id":"YOUR_PROJECT_ID",
-        "dataset_ref":"YOUR_DATASET_REF"
+        "gcp_source":"YOUR_SOURCE_NAME",
+        "gcp_staging":"YOUR_STAGING_NAME",
+        "gcp_production":"YOUR_PRODUCTION_NAME"
     }
 }
