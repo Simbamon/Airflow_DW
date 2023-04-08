@@ -37,12 +37,31 @@ How to access Airflow CLI through docker
      docker exec -it {AIRFLOW_CONTAINER_ID} bash
      ```
 
+How to add Environment Vairables in Airflow
+  1. Prepare JSON file (Example)
+      ```json
+        {
+          "gcp_variables_config": {
+              "service_account_credential":"YOUR_SERVICE_ACCOUNT_CREDENTIAL",
+              "project_id":"YOUR_PROJECT_ID",
+              "gcp_source":"YOUR_SOURCE_NAME",
+              "gcp_staging":"YOUR_STAGING_NAME",
+              "gcp_production":"YOUR_PRODUCTION_NAME"
+          }
+        }
+      ```
+  2. Go to Admin -> Variable and choose the JSON file to import variables
+  3. In Dag, import Variable library from airflow.models (Example)
+     ```python
+     from airflow.models import Variable
+     ```
+
 ## FIXES
 1.  Unable to convert dataframe to parquet error in BigQuery
     Some of the columns in MS AdventureWorkDW2019 were different data type than usual
     For instance, SalesTerritoryImage data type is varbinary and looks like it is causing an error
     To fix this, reference this [stackoverflow case](https://stackoverflow.com/questions/64364129/unable-to-convert-dataframe-to-parquet-typeerror)
     Example:
-    ```
+    ```python
     df['SalesTerritoryImage'] = df['SalesTerritoryImage'].astype('str') 
     ```
