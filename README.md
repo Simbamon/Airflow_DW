@@ -33,7 +33,7 @@ Creating new Key for Service Account
 How to access Airflow CLI through docker
   1. grab the CONTAINER ID through `docker ps`
   2. run this command
-     ```
+     ```bash
      docker exec -it {AIRFLOW_CONTAINER_ID} bash
      ```
 
