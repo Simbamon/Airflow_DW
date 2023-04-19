@@ -73,7 +73,33 @@ x-airflow-common:
     postgres:
       condition: service_healthy
 
+x-minio-common: &minio-common
+  image: quay.io/minio/minio:latest
+  command: server --console-address ":9090" /mnt/data
+  ports:
+    - "9001:9000"
+    - "9090:9090"
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:9001/minio/health/live"]
+    interval: 30s
+    timeout: 20s
+    retries: 3
+
 services:
+  minio1:
+    <<: *minio-common
+    hostname: minio1
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    # volumes:
+    #   - type: volume
+    #     source: /mnt/data/compose
+    #     target: /mnt/data
+      # - type: volume
+      #   source: /etc/default/minio
+      #   target: /etc/config.env
+        
   postgres:
     image: postgres:13
     environment:
